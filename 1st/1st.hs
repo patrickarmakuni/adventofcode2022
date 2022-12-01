@@ -6,7 +6,7 @@ main = do
         let inventoryList = lines contents
             inventories = splitOn "" inventoryList
             sums = map (\x -> (sum (map (\y -> read y :: Integer) x))) inventories
-        print sums)
+        print (maximum sums))
 
 
 splitOn :: String -> [String] -> [[String]]

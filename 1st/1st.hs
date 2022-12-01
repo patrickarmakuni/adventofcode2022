@@ -1,4 +1,5 @@
 import System.IO
+import Data.List
 
 main = do
     withFile "input.txt" ReadMode (\handle -> do
@@ -6,7 +7,8 @@ main = do
         let inventoryList = lines contents
             inventories = splitOn "" inventoryList
             sums = map (\x -> (sum (map (\y -> read y :: Integer) x))) inventories
-        print (maximum sums))
+        print (maximum sums)
+        print (sum . take 3 . reverse $ sort sums))
 
 
 splitOn :: String -> [String] -> [[String]]

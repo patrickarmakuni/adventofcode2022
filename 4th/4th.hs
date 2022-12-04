@@ -6,10 +6,14 @@ main = do
     contents <- readFile "input.txt"
     let pairs = lines contents
     print $ part1 pairs
+    print $ part2 pairs
     
 
 part1 :: [String] -> Int
 part1 pairs = length $ filter (isFullyContained) $ map (parsePair) pairs
+
+part2 :: [String] -> Int
+part2 pairs = length $ filter (isOverlapping) $ map (parsePair) pairs
 
 type Range = (Int, Int)
 type Pair = (Range, Range)
@@ -28,7 +32,9 @@ splitOn elem list = (take index list, drop (index + 1) list)
 
 isFullyContained :: Pair -> Bool
 isFullyContained (range1, range2) = (range1 `fullyContains` range2) || (range2 `fullyContains` range1)
+    where (l1, u1) `fullyContains` (l2, u2) = (l1 <= l2) && (u1 >= u2)
 
-fullyContains :: Range -> Range -> Bool
-(lower1, upper1) `fullyContains` (lower2, upper2) = (lower1 <= lower2) && (upper1 >= upper2)
+isOverlapping :: Pair -> Bool
+isOverlapping ((l1, u1), (l2, u2)) = not distinct
+    where distinct = (l1 > u2) || (l2 > u1)
 

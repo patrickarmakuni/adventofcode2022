@@ -7,6 +7,7 @@ main = do
     contents <- readFile "input.txt"
     let (stacks, moves) = parseInput (lines contents)
     print $ part1 stacks moves
+    print $ part2 stacks moves
 
 
 type Stack = [Char]
@@ -18,10 +19,20 @@ part1 :: [Stack] -> [Move] -> String
 part1 stacks moves = map (head) (processMoves stacks moves)
     where processMoves stacks moves = foldl (\acc m -> processMove acc m) stacks moves
 
+part2 :: [Stack] -> [Move] -> String
+part2 stacks moves = map (head) (processMoves stacks moves)
+    where processMoves stacks moves = foldl (\acc m -> processMove' acc m) stacks moves
+
 
 processMove :: [Stack] -> Move -> [Stack]
 processMove stacks (0, _, _) = stacks
 processMove stacks (number, origin, destination) = processMove (move1 stacks origin destination) (number - 1, origin, destination)
+
+processMove' :: [Stack] -> Move -> [Stack]
+processMove' stacks (number, origin, destination) = (addToDestination . removeFromOrigin) stacks
+    where crates = take number (stacks !! origin)
+          removeFromOrigin s = (take origin s) ++ [(drop number (s !! origin))] ++ (drop (origin + 1) s)
+          addToDestination s = (take destination s) ++ [(crates ++ (s !! destination))] ++ (drop (destination + 1) s)
 
 move1 :: [Stack] -> Int -> Int -> [Stack]
 move1 stacks origin destination = (addToDestination . removeFromOrigin) stacks

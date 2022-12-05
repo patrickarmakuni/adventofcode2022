@@ -7,15 +7,24 @@ main = do
     contents <- readFile "input.txt"
     let (stacks, moves) = parseInput (lines contents)
     print stacks
+    print moves
 
 
 type Stack = [Char]
 type Row = [Char]
-type Move = String
+type Move = (Int, Int, Int)
 
 parseInput :: [String] -> ([Stack], [Move])
-parseInput input = (parseStacks stacks, moves)
+parseInput input = (parseStacks stacks, parseMoves moves)
     where (stacks, moves) = splitOn "" input
+
+parseMoves :: [String] -> [(Int, Int, Int)]
+parseMoves moves = map (parseMove) moves
+
+parseMove :: String -> (Int, Int, Int)
+parseMove move = (getInt ws 1, getInt ws 3, getInt ws 5)
+    where ws = words move
+          getInt ws idx = read (ws !! idx)
 
 parseStacks :: [String] -> [Stack]
 parseStacks stacks = map (trim) (transpose rows)

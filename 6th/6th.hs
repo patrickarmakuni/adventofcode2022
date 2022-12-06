@@ -8,9 +8,13 @@ main = do
 
 findStartOfPacket :: String -> Int
 findStartOfPacket (a:b:c:d:xs)
-    | allDistinct a b c d = 4
+    | distinct [a,b,c,d] = 4
     | otherwise = 1 + findStartOfPacket (b:c:d:xs)
 
-allDistinct :: Char -> Char -> Char -> Char -> Bool
-allDistinct a b c d = a /= b && a /= c && a /= d && b /= c && b /= d && c /= d
+distinct :: (Eq a) => [a] -> Bool
+distinct [] = True
+distinct (x:[]) = True
+distinct (x:xs)
+    | any (== x) xs = False
+    | otherwise = distinct xs
 

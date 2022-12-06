@@ -3,13 +3,15 @@ import System.IO
 main = do
     contents <- readFile "input.txt"
     let datastream = head (lines contents)
-    print $ findStartOfPacket datastream
+    print $ findFirstDistinctSequence datastream 4
+    print $ findFirstDistinctSequence datastream 14
     
 
-findStartOfPacket :: String -> Int
-findStartOfPacket (a:b:c:d:xs)
-    | distinct [a,b,c,d] = 4
-    | otherwise = 1 + findStartOfPacket (b:c:d:xs)
+findFirstDistinctSequence :: String -> Int -> Int
+findFirstDistinctSequence all@(x:xs) seqLength
+    | length all < seqLength = -1
+    | distinct (take seqLength all) = seqLength
+    | otherwise = 1 + (findFirstDistinctSequence xs seqLength)
 
 distinct :: (Eq a) => [a] -> Bool
 distinct [] = True

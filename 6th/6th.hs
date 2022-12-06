@@ -7,15 +7,14 @@ main = do
     print $ findFirstDistinctSequence datastream 14
     
 
-findFirstDistinctSequence :: String -> Int -> Int
+findFirstDistinctSequence :: (Eq a) => [a] -> Int -> Int
 findFirstDistinctSequence all@(x:xs) seqLength
     | length all < seqLength = -1
-    | distinct (take seqLength all) = seqLength
-    | otherwise = 1 + (findFirstDistinctSequence xs seqLength)
+    | distinct $ take seqLength all = seqLength
+    | otherwise = 1 + findFirstDistinctSequence xs seqLength
 
 distinct :: (Eq a) => [a] -> Bool
 distinct [] = True
-distinct (x:[]) = True
 distinct (x:xs)
     | any (== x) xs = False
     | otherwise = distinct xs

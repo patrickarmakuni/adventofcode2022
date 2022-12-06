@@ -53,18 +53,10 @@ parseMove move = (getInt ws 1, (getInt ws 3) - 1, (getInt ws 5) - 1)
           getInt ws idx = read (ws !! idx)
 
 parseStacks :: [String] -> [Stack]
-parseStacks stacks = map (trim) (transpose rows)
-    where rows = parseRows actualStacks
-          actualStacks = init stacks
-          trim = dropWhileEnd isSpace . dropWhile isSpace
-
-parseRows :: [String] -> [Row]
-parseRows [] = []
-parseRows (top:rows) = (parseRow top) : parseRows rows
-
-parseRow :: String -> Row
-parseRow str = map (\idx -> str !! idx) indices
-    where indices = [1,5..(length str)]
+parseStacks input = map (trim . dropColumnId) $ filter isStack $ transpose input
+    where trim = dropWhile isSpace
+          dropColumnId = init
+          isStack = not . isSpace . last
 
 splitOn :: Eq a => a -> [a] -> ([a], [a])
 splitOn elem list = (take index list, drop (index + 1) list)

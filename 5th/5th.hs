@@ -17,28 +17,30 @@ type Move = (Int, Int, Int)
 
 part1 :: [Stack] -> [Move] -> String
 part1 stacks moves = map (head) (processMoves stacks moves)
-    where processMoves stacks moves = foldl (\acc m -> processMove acc m) stacks moves
+    where processMoves stacks moves = foldl (\acc m -> sequentialMove acc m) stacks moves
 
 part2 :: [Stack] -> [Move] -> String
 part2 stacks moves = map (head) (processMoves stacks moves)
-    where processMoves stacks moves = foldl (\acc m -> processMove' acc m) stacks moves
+    where processMoves stacks moves = foldl (\acc m -> batchMove acc m) stacks moves
 
 
-processMove :: [Stack] -> Move -> [Stack]
-processMove stacks (0, _, _) = stacks
-processMove stacks (number, origin, destination) = processMove (move1 stacks origin destination) (number - 1, origin, destination)
+sequentialMove :: [Stack] -> Move -> [Stack]
+sequentialMove stacks (0, _, _) = stacks
+sequentialMove stacks (number, origin, destination) = sequentialMove (move1 stacks origin destination) (number - 1, origin, destination)
 
-processMove' :: [Stack] -> Move -> [Stack]
-processMove' stacks (number, origin, destination) = (addToDestination . removeFromOrigin) stacks
+batchMove :: [Stack] -> Move -> [Stack]
+batchMove stacks (number, origin, destination) = (pushTo destination crates . popFrom origin number) stacks
     where crates = take number (stacks !! origin)
-          removeFromOrigin s = (take origin s) ++ [(drop number (s !! origin))] ++ (drop (origin + 1) s)
-          addToDestination s = (take destination s) ++ [(crates ++ (s !! destination))] ++ (drop (destination + 1) s)
 
 move1 :: [Stack] -> Int -> Int -> [Stack]
-move1 stacks origin destination = (addToDestination . removeFromOrigin) stacks
-    where crate = head (stacks !! origin)
-          removeFromOrigin s = (take origin s) ++ [(tail (s !! origin))] ++ (drop (origin + 1) s)
-          addToDestination s = (take destination s) ++ [(crate : (s !! destination))] ++ (drop (destination + 1) s)
+move1 stacks origin destination = (pushTo destination crates . popFrom origin 1) stacks
+    where crates = [head (stacks !! origin)]
+
+popFrom :: Int -> Int -> [Stack] -> [Stack]
+popFrom idx number stacks = (take idx stacks) ++ [(drop number (stacks !! idx))] ++ (drop (idx + 1) stacks)
+
+pushTo :: Int -> [Char] -> [Stack] -> [Stack]
+pushTo idx crates stacks = (take idx stacks) ++ [(crates ++ (stacks !! idx))] ++ (drop (idx + 1) stacks)
 
 parseInput :: [String] -> ([Stack], [Move])
 parseInput input = (parseStacks stacks, parseMoves moves)

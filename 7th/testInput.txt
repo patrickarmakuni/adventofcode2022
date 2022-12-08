@@ -10,14 +10,15 @@ dir e
 29116 f
 2557 g
 62596 h.lst
+dir x
 $ cd e
 $ ls
-dir a
 584 i
-$ cd a
-$ ls
-1234 l
 $ cd ..
+$ cd x
+$ ls
+1234 y
+234 z
 $ cd ..
 $ cd ..
 $ cd d

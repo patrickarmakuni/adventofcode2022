@@ -3,23 +3,26 @@ import Data.List
 import Data.Char
 
 main = do
-    contents <- readFile "input.txt"
+    contents <- readFile "testInput.txt"
     let output = lines contents
     print $ part1 output
 
 
-part1 :: [String] -> Int
+part1 :: [String] -> [Int]
 part1 output = getSize output
 
-getSize :: [String] -> Int
-getSize [] = 0
-getSize input = sumFilesInDir + sumSubdirs
+getSize :: [String] -> [Int]
+getSize [] = []
+getSize input = (sumFilesInDir + sumSubdirs) : subdirSizes
     where sumFilesInDir = sum $ map (getFileSize) $ filter (isFile) $ getCurrentDirContents input
-          sumSubdirs = sum $ subdirSizes
-          subdirSizes = map (getSize) $ getBlocks nextSection
-          nextSection = dropWhile (not . isCommand) $ dropWhile (isCommand) input
-          isCommand = isPrefixOf "$ "
+          sumSubdirs = sum $ map (headOr 0) subdirs
+          subdirSizes = concat subdirs
+          subdirs = map (getSize) $ getBlocks $ nextSection input
           isFile = (isDigit . head)
+
+nextSection :: [String] -> [String]
+nextSection input = dropWhileEnd (== "$ cd ..") $ dropWhile (not . isCommand) $ dropWhile (isCommand) input
+    where isCommand = isPrefixOf "$ "
 
 getCurrentDirContents :: [String] -> [String]
 getCurrentDirContents output = takeWhile (not . isCommand) $ dropWhile (isCommand) output
@@ -36,7 +39,7 @@ splitAt' (idx:idxs) input = [(take idx input)] ++ (splitAt' (map (subtract idx) 
 getSplitIndices :: [String] -> Int -> Int -> [Int] -> [Int]
 getSplitIndices [] _ _ acc = acc
 getSplitIndices (line:rest) level idx acc
-    | isCdUp line = if level == 1 then getSplitIndices rest 0 (idx + 1) (idx : acc) else getSplitIndices rest (level - 1) (idx + 1) acc
+    | isCdUp line = if level == 1 then getSplitIndices rest 0 (idx + 1) (acc ++ [idx]) else getSplitIndices rest (level - 1) (idx + 1) acc
     | isCdDown line = getSplitIndices rest (level + 1) (idx + 1) acc
     | otherwise = getSplitIndices rest level (idx + 1) acc
     where isCdUp l = l == "$ cd .."
@@ -44,4 +47,8 @@ getSplitIndices (line:rest) level idx acc
 
 getFileSize :: String -> Int
 getFileSize = read . head . words
+
+headOr :: a -> [a] -> a
+headOr x [] = x
+headOr _ (x:_) = x
 

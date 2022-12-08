@@ -3,13 +3,19 @@ import Data.Char
 import Data.List
 
 main = do
-    contents <- readFile "testInput.txt"
+    contents <- readFile "input.txt"
     let grid = readDigits $ lines contents
-    print $ vfl grid
-    print $ vfr grid
-    print $ vft grid
-    print $ vfb grid
+    print $ gridSum $ gridOr [vfl grid, vfr grid, vft grid, vfb grid]
 
+
+gridSum :: [[Bool]] -> Int
+gridSum grid = sum $ map count grid
+
+count :: [Bool] -> Int
+count bools = length $ filter (== True) bools
+
+gridOr :: [[[Bool]]] -> [[Bool]]
+gridOr grids = foldl1 (zipWith (zipWith (||))) grids
 
 vfl :: [[Int]] -> [[Bool]]
 vfl grid = map (\row -> visibleFromLeft row (-1) []) grid

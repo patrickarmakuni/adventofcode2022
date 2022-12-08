@@ -5,39 +5,43 @@ import Data.List
 main = do
     contents <- readFile "input.txt"
     let grid = readDigits $ lines contents
-    print $ gridSum $ gridOr [vfl grid, vfr grid, vft grid, vfb grid]
+    print $ gridCount $ sumGrids [vfl grid, vfr grid, vft grid, vfb grid]
 
 
-gridSum :: [[Bool]] -> Int
-gridSum grid = sum $ map count grid
+type Grid = [Row]
+type Row = [Int]
 
-count :: [Bool] -> Int
-count bools = length $ filter (== True) bools
+gridCount :: Grid -> Int
+gridCount = sum . map count
+    where count = length . filter (> 0)
 
-gridOr :: [[[Bool]]] -> [[Bool]]
-gridOr grids = foldl1 (zipWith (zipWith (||))) grids
+sumGrids :: [Grid] -> Grid
+sumGrids = foldl1 (zipWith $ zipWith (+))
 
-vfl :: [[Int]] -> [[Bool]]
-vfl grid = map (\row -> visibleFromLeft row (-1) []) grid
+vfl :: Grid -> Grid
+vfl = map visibleFromLeft
 
-vfr :: [[Int]] -> [[Bool]]
-vfr grid = map (\row -> visibleFromRight row (-1) []) grid
+vfr :: Grid -> Grid
+vfr = map visibleFromRight
 
-vft :: [[Int]] -> [[Bool]]
-vft grid = transpose $ vfl $ transpose grid
+vft :: Grid -> Grid
+vft = transpose . vfl . transpose
 
-vfb :: [[Int]] -> [[Bool]]
-vfb grid = transpose $ vfr $ transpose grid
+vfb :: Grid -> Grid
+vfb = transpose . vfr . transpose
 
-visibleFromLeft :: [Int] -> Int -> [Bool] -> [Bool]
-visibleFromLeft [] _ acc = acc
-visibleFromLeft (tree:row) highest acc
-    | tree > highest = visibleFromLeft row tree (acc ++ [True])
-    | otherwise      = visibleFromLeft row highest (acc ++ [False])
+visibleFromRight :: Row -> Row
+visibleFromRight = reverse . visibleFromLeft . reverse
 
-visibleFromRight :: [Int] -> Int -> [Bool] -> [Bool]
-visibleFromRight row _ _ = reverse (visibleFromLeft (reverse row) (-1) [])
+visibleFromLeft :: Row -> Row
+visibleFromLeft = visibleFromLeftAcc (-1) []
 
-readDigits :: [String] -> [[Int]]
-readDigits strings = map (map digitToInt) strings
+visibleFromLeftAcc :: Int -> Row -> Row -> Row
+visibleFromLeftAcc _ acc [] = acc
+visibleFromLeftAcc highest acc (tree:row)
+    | tree > highest = visibleFromLeftAcc tree (acc ++ [1]) row
+    | otherwise      = visibleFromLeftAcc highest (acc ++ [0]) row
+
+readDigits :: [String] -> Grid
+readDigits = map $ map digitToInt
 

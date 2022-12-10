@@ -12,11 +12,7 @@ part1 instructions = sum $ map (ss !!) [19,59..219]
     where ss = signalStrengths $ getStates instructions
 
 signalStrengths :: [Int] -> [Int]
-signalStrengths = ssIter 1
-
-ssIter :: Int -> [Int] -> [Int]
-ssIter _ [] = []
-ssIter i (x:xs) = (i * x) : ssIter (i + 1) xs
+signalStrengths = iter (*) 1
 
 getStates :: [String] -> [Int]
 getStates = reverse . foldl (updateState) [1]
@@ -36,13 +32,14 @@ breakIntoLines s = a ++ "\n" ++ (breakIntoLines b)
     where (a, b) = splitAt 40 s
 
 drawPixels :: [Int] -> String
-drawPixels = dpIter 0
-
-dpIter :: Int -> [Int] -> String
-dpIter _ [] = []
-dpIter i (x:xs) = drawChar : dpIter (i + 1) xs
-    where drawChar = if spriteAligns i x then '#' else '.'
+drawPixels = iter (\i x -> if spriteAligns i x then '#' else '.') 0
 
 spriteAligns :: Int -> Int -> Bool
 spriteAligns cycle x = abs (pixel - x) <= 1
     where pixel = cycle `mod` 40
+
+
+iter :: (Int -> a -> b) -> Int -> [a] -> [b]
+iter _ _ [] = []
+iter f i (x:xs) = (f i x) : iter f (i + 1) xs
+

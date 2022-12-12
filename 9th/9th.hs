@@ -1,10 +1,9 @@
 import System.IO
 
 main = do
-    contents <- readFile "testInput.txt"
+    contents <- readFile "input.txt"
     let input = lines contents
-    print $ headPositions $ convert input
-    print $ tailPositions $ headPositions $ convert input
+    print $ length $ distinct $ tailPositions $ headPositions $ convert input
 
 
 type Direction = Char
@@ -33,9 +32,15 @@ tailPositions = tail . scanl follow (0, 0)
 follow :: Position -> Position -> Position
 follow tail@(xt, yt) head@(xh, yh)
     | isTouching tail head = tail
-    | abs (xt - xh) < 2   = (xh, (yt + yh) `div` 2)
-    | abs (yt - yh) < 2   = ((xt + xh) `div` 2, yh)
+    | abs (xt - xh) < 2    = (xh, (yt + yh) `div` 2)
+    | abs (yt - yh) < 2    = ((xt + xh) `div` 2, yh)
 
 isTouching :: Position -> Position -> Bool
 isTouching (x1, y1) (x2, y2) = abs (x1 - x2) < 2 && abs (y1 - y2) < 2
+
+distinct :: (Eq a) => [a] -> [a]
+distinct [] = []
+distinct (x:xs)
+    | any (== x) xs = distinct xs
+    | otherwise     = x : (distinct xs)
 

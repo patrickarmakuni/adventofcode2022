@@ -3,7 +3,14 @@ import System.IO
 main = do
     contents <- readFile "input.txt"
     let input = lines contents
-    print $ length $ distinct $ tailPositions $ headPositions $ convert input
+    print $ part1 input
+    print $ part2 input
+
+part1 :: [String] -> Int
+part1 = positionsVisited . tailPositions 2 . headPositions . convert
+
+part2 :: [String] -> Int
+part2 = positionsVisited . tailPositions 10 . headPositions . convert
 
 
 type Direction = Char
@@ -26,21 +33,26 @@ move (x, y) 'R' = (x + 1, y)
 move (x, y) 'U' = (x, y + 1)
 move (x, y) 'D' = (x, y - 1)
 
-tailPositions :: [Position] -> [Position]
-tailPositions = tail . scanl follow (0, 0)
+followerPositions :: [Position] -> [Position]
+followerPositions = tail . scanl follow (0, 0)
 
 follow :: Position -> Position -> Position
 follow tail@(xt, yt) head@(xh, yh)
     | isTouching tail head = tail
-    | abs (xt - xh) < 2    = (xh, (yt + yh) `div` 2)
-    | abs (yt - yh) < 2    = ((xt + xh) `div` 2, yh)
+    | abs (xt - xh) < 2    = (xh, midpoint yt yh)
+    | abs (yt - yh) < 2    = (midpoint xt xh, yh)
+    | otherwise            = (midpoint xt xh, midpoint yt yh)
+    where midpoint a b = (a + b) `div` 2
 
 isTouching :: Position -> Position -> Bool
 isTouching (x1, y1) (x2, y2) = abs (x1 - x2) < 2 && abs (y1 - y2) < 2
 
+positionsVisited :: [Position] -> Int
+positionsVisited = length . distinct
+
 distinct :: (Eq a) => [a] -> [a]
-distinct [] = []
-distinct (x:xs)
-    | any (== x) xs = distinct xs
-    | otherwise     = x : (distinct xs)
+distinct = foldr (\x acc -> if any (== x) acc then acc else x : acc) []
+
+tailPositions :: Int -> [Position] -> [Position]
+tailPositions ropeLength headPositions = (iterate followerPositions headPositions) !! (ropeLength - 1)
 

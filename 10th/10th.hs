@@ -1,15 +1,19 @@
 import System.IO
+import System.Environment
 import Data.Char
 import Data.List
 
 main = do
     contents <- readFile "input.txt"
+    args <- getArgs
     let monkeys = parseMonkeys $ lines contents
-    print $ part1 monkeys
+        n = read $ head args
+    print $ part1 monkeys n
 
 
-part1 :: [Monkey] -> Int
-part1 monkeys = monkeyBusiness $ runRounds 20 monkeys
+part1 :: [Monkey] -> Int -> Int
+part1 monkeys n = monkeyBusiness $ runRounds n monkeys
+
 
 type Monkey = ([Int], Int -> Int, Int -> Bool, (Int, Int), Int)
 

@@ -5,14 +5,23 @@ import Data.List
 
 main = do
     contents <- readFile "input.txt"
-    args <- getArgs
-    let monkeys = parseMonkeys $ lines contents
-        n = read $ head args
-    print $ part1 monkeys n
+    let input = lines contents
+    print $ part1 input
+    print $ part2 input
 
 
-part1 :: [Monkey] -> Int -> Int
-part1 monkeys n = monkeyBusiness $ runRounds n monkeys
+part1 :: [String] -> Int
+part1 input = monkeyBusiness $ runRounds 20 monkeys
+    where monkeys = parseMonkeys (\x -> x `div` 3) input
+
+part2 :: [String] -> Int
+part2 input = monkeyBusiness $ runRounds 10000 monkeys
+    where monkeys = parseMonkeys (\x -> x `mod` modulus) input
+          modulus = product $ testValues input
+
+testValues :: [String] -> [Int]
+testValues = map parseTestValue . filter isTest
+    where isTest s = s /= "" && (head . words) s == "Test:"
 
 
 type Monkey = ([Item], Operation, TestValue, (Int, Int), Int)
@@ -20,30 +29,17 @@ type Item = Int
 type Operation = Int -> Int
 type TestValue = Int
 
-getItems :: Monkey -> [Item]
-getItems (items, _, _, _, _) = items
-
-getOperation :: Monkey -> Operation
-getOperation (_, operation, _, _, _) = operation
-
-getTestValue :: Monkey -> TestValue
-getTestValue (_, _, testValue, _, _) = testValue
-
-getReceivers :: Monkey -> (Int, Int)
-getReceivers (_, _, _, receivers, _) = receivers
-
 getItemsInspected :: Monkey -> Int
 getItemsInspected (_, _, _, _, itemsInspected) = itemsInspected
 
 
+parseMonkeys :: (Int -> Int) -> [String] -> [Monkey]
+parseMonkeys reduce = map (parseMonkey reduce) . splitOn ""
 
-parseMonkeys :: [String] -> [Monkey]
-parseMonkeys = map parseMonkey . splitOn ""
-
-parseMonkey :: [String] -> Monkey
-parseMonkey input = (items, operation, testValue, receivers, 0)
+parseMonkey :: (Int -> Int) -> [String] -> Monkey
+parseMonkey reduce input = (items, operation, testValue, receivers, 0)
     where items = map parseInt $ drop 2 $ words $ input !! 1
-          operation = parseOperation $ input !! 2
+          operation = reduce . (parseOperation $ input !! 2)
           testValue = parseTestValue $ input !! 3
           receivers = (digitToInt $ last $ input !! 4, digitToInt $ last $ input !! 5)
 
@@ -68,7 +64,7 @@ parseTestValue = read . last . words
 
 
 monkeyBusiness :: [Monkey] -> Int
-monkeyBusiness monkeys = product $ take 2 $ reverse $ sort $ map getItemsInspected monkeys
+monkeyBusiness = product . take 2 . reverse . sort . map getItemsInspected
 
 runRounds :: Int -> [Monkey] -> [Monkey]
 runRounds n monkeys = (iterate runRound monkeys) !! n
@@ -90,7 +86,7 @@ takeTurn (input:items, operation, testValue, receivers, itemsInspected) i monkey
 
 calculateOutput :: Item -> Operation -> TestValue -> (Int, Int) -> (Int, Int)
 calculateOutput input operation testValue receivers = (output, if (output `mod` testValue) == 0 then fst receivers else snd receivers)
-    where output = (operation input) `div` 3
+    where output = operation input
 
 updateMonkey :: Monkey -> Item -> Monkey
 updateMonkey (items, a, b, c, d) item = (items ++ [item], a, b, c, d)

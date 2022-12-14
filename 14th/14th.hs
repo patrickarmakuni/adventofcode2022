@@ -42,10 +42,6 @@ parsePosition s = (read x, read $ tail y)
     where (x, y) = splitAt 3 s
 
 
-fallsEndlessly :: [Position] -> Int -> Position -> Bool
-fallsEndlessly blocked floor start = snd (trajectory !! (floor + 1)) > floor
-    where trajectory = iterate (fallStep blocked) start
-
 dropGrain :: Position -> Int -> [Position] -> [Position]
 dropGrain start floor blocked = maybeToList (fall blocked start floor) ++ blocked
 
@@ -56,20 +52,16 @@ fall blocked current@(x, y) floor
     | otherwise       = fall blocked next floor
     where next = fallStep blocked current
 
-restingPosition :: [Position] -> Position
-restingPosition (x:y:xs)
-    | x == y    = x
-    | otherwise = restingPosition xs
-
 fallStep :: [Position] -> Position -> Position
-fallStep blocked current@(x, y) = getCandidate blocked current candidates
-    where candidates = [(x, y + 1), (x - 1, y + 1), (x + 1, y + 1)]
-
-getCandidate :: [Position] -> Position -> [Position] -> Position
-getCandidate _ current [] = current
-getCandidate blocked current (x:xs)
-    | any (== x) blocked = getCandidate blocked current xs
-    | otherwise = x
+fallStep blocked current@(x, y)
+    | isFree below      = below
+    | isFree belowLeft  = belowLeft
+    | isFree belowRight = belowRight
+    | otherwise         = current
+    where below      = (x, y + 1)
+          belowLeft  = (x - 1, y + 1)
+          belowRight = (x + 1, y + 1)
+          isFree p = all (/= p) blocked
 
 
 splitOn :: String -> [String] -> [[String]]

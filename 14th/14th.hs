@@ -1,5 +1,7 @@
 import System.IO
 import Data.List
+import Data.Maybe
+
 
 main = do
     input <- fmap lines $ readFile "input.txt"
@@ -45,13 +47,14 @@ fallsEndlessly blocked floor start = snd (trajectory !! (floor + 1)) > floor
     where trajectory = iterate (fallStep blocked) start
 
 dropGrain :: Position -> Int -> [Position] -> [Position]
-dropGrain start floor blocked
-    | fallsEndlessly blocked floor start = blocked
-    | otherwise = (fall blocked start floor) : blocked
+dropGrain start floor blocked = maybeToList (fall blocked start floor) ++ blocked
 
-fall :: [Position] -> Position -> Int -> Position
-fall blocked start floor = trajectory !! floor
-    where trajectory = iterate (fallStep blocked) start
+fall :: [Position] -> Position -> Int -> Maybe Position
+fall blocked current@(x, y) floor
+    | y >= floor      = Nothing
+    | next == current = Just current
+    | otherwise       = fall blocked next floor
+    where next = fallStep blocked current
 
 restingPosition :: [Position] -> Position
 restingPosition (x:y:xs)

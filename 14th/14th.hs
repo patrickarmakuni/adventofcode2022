@@ -5,7 +5,7 @@ import Data.Maybe
 
 main = do
     input <- fmap lines $ readFile "input.txt"
-    print $ part1 input
+    print $ part2 input
 
 
 type Position = (Int, Int)
@@ -19,6 +19,11 @@ findSteadyState :: Int -> [[Position]] -> Int
 findSteadyState idx (x:y:xs)
     | x == y = idx
     | otherwise = findSteadyState (idx + 1) (y:xs)
+
+part2 :: [String] -> Int
+part2 input = length $ takeWhile (\ positions -> head positions /= (500, 0)) $ iterate (dropGrain' (500, 0) floor) blocked
+    where blocked = getStructures input
+          floor = (maximum $ map (snd) blocked) + 2
 
 
 getStructures :: [String] -> [Position]
@@ -43,13 +48,23 @@ parsePosition s = (read x, read $ tail y)
 
 
 dropGrain :: Position -> Int -> [Position] -> [Position]
-dropGrain start floor blocked = maybeToList (fall blocked start floor) ++ blocked
+dropGrain start floor blocked = maybeToList (fall blocked floor start) ++ blocked
 
-fall :: [Position] -> Position -> Int -> Maybe Position
-fall blocked current@(x, y) floor
+dropGrain' :: Position -> Int -> [Position] -> [Position]
+dropGrain' start floor blocked = (fall' blocked floor start) : blocked
+
+fall :: [Position] -> Int -> Position -> Maybe Position
+fall blocked floor current@(x, y)
     | y >= floor      = Nothing
     | next == current = Just current
-    | otherwise       = fall blocked next floor
+    | otherwise       = fall blocked floor next
+    where next = fallStep blocked current
+
+fall' :: [Position] -> Int -> Position -> Position
+fall' blocked floor current@(x, y)
+    | y + 1 == floor = current
+    | next == current = current
+    | otherwise = fall' blocked floor next
     where next = fallStep blocked current
 
 fallStep :: [Position] -> Position -> Position

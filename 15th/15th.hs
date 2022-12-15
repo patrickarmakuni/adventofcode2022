@@ -1,13 +1,16 @@
 import System.IO
 import System.Environment
 import Data.Char
+import Data.List
+import Data.Maybe
 
 main = do
     args <- getArgs
-    let (inputFile, rowNumber) = (args !! 0, read $ args !! 1)
+    let (inputFile, parameter) = (args !! 0, read $ args !! 1)
     input <- fmap lines $ readFile inputFile
     let pairings = map parsePairing input
-    print $ countNonBeaconPositions rowNumber pairings
+    print $ countNonBeaconPositions parameter pairings
+    print $ findDistressBeacon parameter pairings
 
 
 type Position = (Int, Int)
@@ -17,9 +20,14 @@ type Beacon = Position
 type Row = Int
 type Range = (Int, Int)
 
+findDistressBeacon :: Int -> [Pairing] -> Position
+findDistressBeacon range pairings = fromMaybe (0, 0) $ find isDistressBeacon allPositions
+    where allPositions = (,) <$> [0..range] <*> [0..range]
+          isDistressBeacon pos = not $ any (isWithinRangeOf pos) pairings
+
 countNonBeaconPositions :: Row -> [Pairing] -> Int
-countNonBeaconPositions row pairings = length $ filter (isNonBeacon pairings) $ map (\x -> (x, row)) [left..right]
-    where (left, right) = totalHorizontalRange pairings
+countNonBeaconPositions row pairings = length $ filter (isNonBeacon pairings) $ map (\x -> (x, row)) [xmin..xmax]
+    where (xmin, xmax) = totalHorizontalRange pairings
 
 isNonBeacon :: [Pairing] -> Position -> Bool
 isNonBeacon pairings pos = (not . any (== pos)) beacons && any (isWithinRangeOf pos) pairings

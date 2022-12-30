@@ -17,11 +17,46 @@ type Bounds3 = (Bounds1, Bounds1, Bounds1)
 
 
 part2 :: [Cube] -> Int
-part2 droplet = sum $ map (\c -> exposed' c droplet) droplet
+part2 droplet = sum $ map (\c -> countAdjacent' c free) droplet
+    where free = freeAirMap droplet
+
+freeAirMap :: [Cube] -> [Cube]
+freeAirMap droplet = freeAirMapAcc first droplet (bounds droplet) []
+    where first = (x0, y0, y1)
+          ((x0, x1), (y0, y1), (z0, z1)) = bounds droplet
+
+freeAirMapAcc :: Cube -> [Cube] -> Bounds3 -> [Cube] -> [Cube]
+freeAirMapAcc cube@(x, y, z) droplet b@((x0, x1), (y0, y1), (z0, z1)) acc
+    | x < x1   = freeAirMapAcc (x + 1, y, z) droplet b $ updateCubes cube b acc
+    | y < y1   = freeAirMapAcc (x0, y + 1, z) droplet b $ updateCubes cube b acc
+    | z < z1   = freeAirMapAcc (x0, y0, z + 1) droplet b $ updateCubes cube b acc
+    | otherwise = acc
+
+fillIn :: [Cube] -> [Cube]
+fillIn droplet = fillInAcc first b droplet
+    where first = (x0, y0, y1)
+          ((x0, x1), (y0, y1), (z0, z1)) = bounds droplet
+          b = bounds droplet
+
+fillInAcc :: Cube -> Bounds3 -> [Cube] -> [Cube]
+fillInAcc cube@(x, y, z) b@((x0, x1), (y0, y1), (z0, z1)) cubes
+    | x <= x1   = fillInAcc (x + 1, y, z) b $ updateCubes cube b cubes
+    | y <= y1   = fillInAcc (x0, y + 1, z) b $ updateCubes cube b cubes
+    | z <= z1   = fillInAcc (x0, y0, z + 1) b $ updateCubes cube b cubes
+    | otherwise = cubes
+
+updateCubes :: Cube -> Bounds3 -> [Cube] -> [Cube]
+updateCubes cube b cubes
+    | cubes `contains` cube  = cubes
+    | isFreeAir b cubes cube = cube : cubes
+    | otherwise              = cubes
 
 exposed' :: Cube -> [Cube] -> Int
 exposed' cube droplet = length $ filter (isFreeAir b droplet) $ neighbours cube
     where b = bounds droplet
+
+countAdjacent' :: Cube -> [Cube] -> Int
+countAdjacent' cube free = foldl (\acc x -> if x `isAdjacentTo` cube then acc else acc + 1) 0 free
 
 isFreeAir :: Bounds3 -> [Cube] -> Cube -> Bool
 isFreeAir bounds cubes cube

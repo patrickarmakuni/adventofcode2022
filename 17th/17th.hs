@@ -16,34 +16,79 @@ type Structure = [Position]
 type Jet = Char
 
 
-part1 :: [Jet] -> Structure
-part1 jets = fall [(2, 4), (3, 4), (4, 4), (5, 4)] jets []
+part1 :: [Jet] -> Int
+part1 jets = (+1) $ topOf $ loop 0 jets base
 
 
-fall :: Rock -> [Jet] -> Structure -> Structure
-fall rock (jet:jets) structure 
-    | isBlocked rock structure = rock ++ structure
-    | otherwise = fall (fallCycle jet rock) (jets ++ [jet]) structure
+loop :: Int -> [Jet] -> Structure -> Structure
+loop 2022 _ structure = structure
+loop i jets structure = loop (i + 1) newJets newStructure
+    where (newStructure, newJets) = fall (getRock (i `mod` 5) ((topOf structure) + 5)) jets structure
 
-fallCycle :: Jet -> Rock -> Rock
-fallCycle jet = pushOne jet . dropOne
+topOf :: Structure -> Int
+topOf structure = snd $ maximumBy (\(_, y1) (_, y2) -> compare y1 y2) structure
+
+
+fall :: Rock -> [Jet] -> Structure -> (Structure, [Jet])
+fall rock all@(jet:jets) structure 
+    | isBlockedDown rock structure = (rock ++ structure, all)
+    | otherwise = fall (fallCycle jet structure rock) (jets ++ [jet]) structure
+
+fallCycle :: Jet -> Structure -> Rock -> Rock
+fallCycle jet structure = pushOne jet structure . dropOne
     where dropOne = map (\(x, y) -> (x, y - 1))
 
-pushOne :: Jet -> Rock -> Rock
-pushOne '>' = pushRight
-pushOne '<' = pushLeft
+pushOne :: Jet -> Structure -> Rock -> Rock
+pushOne '>' structure = pushRight structure
+pushOne '<' structure = pushLeft structure
 
-pushRight :: Rock -> Rock
-pushRight rock
-    | any (\(x, _) -> x == 6) rock = rock
-    | otherwise = map (\(x, y) -> (x + 1, y)) rock
-
-pushLeft :: Rock -> Rock
-pushLeft rock
-    | any (\(x, _) -> x == 0) rock = rock
+pushLeft :: Structure -> Rock -> Rock
+pushLeft structure rock
+    | isBlockedLeft rock structure = rock
     | otherwise = map (\(x, y) -> (x - 1, y)) rock
 
-isBlocked :: Rock -> Structure -> Bool
-isBlocked rock structure = any isAtRest rock
-    where isAtRest (x1, y1) = y1 == 0 || any (\(x2, y2) -> x1 == x2 && y1 == y2 + 1) structure
+pushRight :: Structure -> Rock -> Rock
+pushRight structure rock
+    | isBlockedRight rock structure = rock
+    | otherwise = map (\(x, y) -> (x + 1, y)) rock
+
+
+isBlockedLeft :: Rock -> Structure -> Bool
+isBlockedLeft rock structure = any ibl rock
+    where ibl (x1, y1) = x1 == 0 || any (\(x2, y2) -> x1 == x2 + 1 && y1 == y2) structure
+
+isBlockedRight :: Rock -> Structure -> Bool
+isBlockedRight rock structure = any ibr rock
+    where ibr (x1, y1) = x1 == 6 || any (\(x2, y2) -> x1 == x2 - 1 && y1 == y2) structure
+
+isBlockedDown :: Rock -> Structure -> Bool
+isBlockedDown rock structure = any ibd rock
+    where ibd (x1, y1) = y1 == 0 || any (\(x2, y2) -> x1 == x2 && y1 == y2 + 1) structure
+
+
+getRock :: Int -> Int -> Rock
+getRock i = case i of 0 -> one
+                      1 -> two
+                      2 -> three
+                      3 -> four
+                      4 -> five
+
+one :: Int -> Rock
+one y = [(2, y), (3, y), (4, y), (5, y)]
+
+two :: Int -> Rock
+two y = [(2, y + 1), (3, y), (3, y + 1), (3, y + 2), (4, y + 1)]
+
+three :: Int -> Rock
+three y = [(2, y), (3, y), (4, y), (4, y + 1), (4, y + 2)]
+
+four :: Int -> Rock
+four y = [(2, y), (2, y + 1), (2, y + 2), (2, y + 3)]
+
+five :: Int -> Rock
+five y = [(2, y), (2, y + 1), (3, y), (3, y + 1)]
+
+base :: Rock
+base = [(0, -1), (1, -1), (2, -1), (3, -1), (4, -1), (5, -1), (6, -1)]
+
 

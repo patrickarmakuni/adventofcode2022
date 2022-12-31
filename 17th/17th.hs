@@ -5,9 +5,9 @@ import Data.List
 
 main = do
     args <- getArgs
-    let inputFile = args !! 0
+    let (inputFile, n) = (args !! 0, read $ args !! 1)
     input <- fmap init $ readFile inputFile
-    print $ part1 input
+    print $ runFor n input
 
 
 type Position = (Int, Int)
@@ -16,13 +16,14 @@ type Structure = [Position]
 type Jet = Char
 
 
-part1 :: [Jet] -> Int
-part1 jets = (+1) $ topOf $ loop 0 jets base
+runFor :: Int -> [Jet] -> Int
+runFor n jets = (+1) $ topOf $ loop 0 n jets base
 
 
-loop :: Int -> [Jet] -> Structure -> Structure
-loop 2022 _ structure = structure
-loop i jets structure = loop (i + 1) newJets newStructure
+loop :: Int -> Int -> [Jet] -> Structure -> Structure
+loop i n jets structure
+    | i == n = structure
+    | otherwise = loop (i + 1) n newJets newStructure
     where (newStructure, newJets) = fall (getRock (i `mod` 5) ((topOf structure) + 5)) jets structure
 
 topOf :: Structure -> Int

@@ -16,16 +16,16 @@ type Heightmap = [String]
 
 
 part1 :: Heightmap -> Int
-part1 hmap = iterateSearch 0 [start] end hmap
+part1 hmap = iterateSearch 0 [start] [start] end hmap
     where start = getPosition 'S' hmap
           end = getPosition 'E' hmap
 
 
-iterateSearch :: Int -> [Position] -> Position -> Heightmap -> Int
-iterateSearch t searched end hmap
-    | any (==end) searched = t
-    | otherwise = iterateSearch (t + 1) (searchFrom searched) end hmap
-    where searchFrom positions = nub $ concat $ map (\pos -> getReachable pos [] hmap) positions
+iterateSearch :: Int -> [Position] -> [Position] -> Position -> Heightmap -> Int
+iterateSearch t current searched end hmap
+    | any (==end) current = t
+    | otherwise = iterateSearch (t + 1) next (next ++ searched) end hmap
+    where next = nub $ concat $ map (\pos -> getReachable pos searched hmap) current
 
 
 getPosition :: Char -> Heightmap -> Position

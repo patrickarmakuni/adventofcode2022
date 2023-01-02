@@ -16,22 +16,22 @@ type Heightmap = [String]
 
 
 part1 :: Heightmap -> Int
-part1 hmap = shortestPath start end [] hmap
+part1 hmap = iterateSearch 0 [start] end hmap
     where start = getPosition 'S' hmap
           end = getPosition 'E' hmap
+
+
+iterateSearch :: Int -> [Position] -> Position -> Heightmap -> Int
+iterateSearch t searched end hmap
+    | any (==end) searched = t
+    | otherwise = iterateSearch (t + 1) (searchFrom searched) end hmap
+    where searchFrom positions = nub $ concat $ map (\pos -> getReachable pos [] hmap) positions
 
 
 getPosition :: Char -> Heightmap -> Position
 getPosition c hmap = (column, row)
     where row = fromJust $ findIndex (any (== c)) hmap
           column = fromJust $ elemIndex c $ hmap !! row
-
-shortestPath :: Position -> Position -> [Position] -> Heightmap -> Int
-shortestPath a b visited hmap
-    | a == b = 0
-    | length reachable == 0 = 1000000
-    | otherwise = (+1) $ minimum $ map (\c -> shortestPath c b (a : visited) hmap) reachable
-    where reachable = getReachable a visited hmap
 
 getReachable :: Position -> [Position] -> Heightmap -> [Position]
 getReachable pos@(x, y) visited hmap = filter (not . tooHigh hmap pos) $ filter isNotVisited $ filter (isOnMap hmap) neighbours

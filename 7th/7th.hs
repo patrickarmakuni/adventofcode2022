@@ -10,8 +10,16 @@ main = do
     print $ part1 output
 
 
-data Contents = File Int | Directory String [Contents] deriving Show
+data Contents = File Int | Directory String [Contents]
 
+instance Show Contents where show = showAcc 0
+
+showAcc :: Int -> Contents -> String
+showAcc n (Directory name contents) = indent n $ name ++ "\n" ++ (intercalate "\n" $ map (showAcc (n+1)) contents)
+showAcc n (File x) = indent n $ show x
+
+indent :: Int -> String -> String
+indent n s = (replicate (2 * n) ' ') ++ s
 
 part1 :: [String] -> Int
 part1 output = sumSub100000 $ buildDirectory output

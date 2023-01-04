@@ -1,10 +1,12 @@
+import System.Environment
 import System.IO
 import Data.List
 import Data.Char
 
 main = do
-    contents <- readFile "testInput.txt"
-    let output = lines contents
+    args <- getArgs
+    let inputFile = args !! 0
+    output <- fmap lines $ readFile inputFile
     print $ part1 output
 
 

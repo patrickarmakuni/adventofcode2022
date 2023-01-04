@@ -10,17 +10,29 @@ main = do
     print $ part1 output
 
 
-part1 :: [String] -> [Int]
-part1 output = getSize output
+data Contents = File Int | Directory String [Contents] deriving Show
 
-getSize :: [String] -> [Int]
-getSize [] = []
-getSize input = (sumFilesInDir + sumSubdirs) : subdirSizes
-    where sumFilesInDir = sum $ map (getFileSize) $ filter (isFile) $ getCurrentDirContents input
-          sumSubdirs = sum $ map (headOr 0) subdirs
-          subdirSizes = concat subdirs
-          subdirs = map (getSize) $ getBlocks $ nextSection input
-          isFile = (isDigit . head)
+
+part1 :: [String] -> Int
+part1 output = sumSub100000 $ buildDirectory output
+
+sumSub100000 :: Contents -> Int
+sumSub100000 (File _) = 0
+sumSub100000 dir@(Directory _ contents) = dirValue + (sum $ map sumSub100000 contents)
+    where s = size dir
+          dirValue = if s <= 100000 then s else 0
+
+
+size :: Contents -> Int
+size (File x) = x
+size (Directory _ xs) = sum $ map size xs
+
+buildDirectory :: [String] -> Contents
+buildDirectory output = Directory name $ files ++ subdirs
+    where files = map (getFile) $ filter (isFile) $ getCurrentDirContents output
+          subdirs = map (buildDirectory) $ getBlocks $ nextSection output
+          name = last $ words $ head output
+
 
 nextSection :: [String] -> [String]
 nextSection input = dropWhileEnd (== "$ cd ..") $ dropWhile (not . isCommand) $ dropWhile (isCommand) input
@@ -31,6 +43,7 @@ getCurrentDirContents output = takeWhile (not . isCommand) $ dropWhile (isComman
     where isCommand = isPrefixOf "$ "
 
 getBlocks :: [String] -> [[String]]
+getBlocks [] = []
 getBlocks input = splitAt' idxs input
     where idxs = getSplitIndices input 0 0 []
 
@@ -53,4 +66,16 @@ getFileSize = read . head . words
 headOr :: a -> [a] -> a
 headOr x [] = x
 headOr _ (x:_) = x
+
+isFile :: String -> Bool
+isFile = (isDigit . head)
+
+isDir :: String -> Bool
+isDir s = "dir " `isPrefixOf` s
+
+isCommand :: String -> Bool
+isCommand s = "$ " `isPrefixOf` s
+
+getFile :: String -> Contents
+getFile = File . read . head . words
 

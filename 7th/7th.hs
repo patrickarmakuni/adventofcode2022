@@ -8,6 +8,7 @@ main = do
     let inputFile = args !! 0
     output <- fmap lines $ readFile inputFile
     print $ part1 output
+    print $ part2 output
 
 
 data Contents = File Int | Directory String [Contents]
@@ -30,10 +31,21 @@ sumSub100000 dir@(Directory _ contents) = dirValue + (sum $ map sumSub100000 con
     where s = size dir
           dirValue = if s <= 100000 then s else 0
 
+part2 :: [String] -> Int
+part2 output = smallestGreaterThan deficit totalSize fileSystem
+    where fileSystem = buildDirectory output
+          totalSize = size fileSystem
+          deficit = totalSize - 40000000
+
+smallestGreaterThan :: Int -> Int -> Contents -> Int
+smallestGreaterThan n acc (File _) = acc
+smallestGreaterThan n acc dir@(Directory _ contents) = minimum $ map (smallestGreaterThan n smallest) contents
+    where smallest = if currentSize < acc && currentSize > n then currentSize else acc
+          currentSize = size dir
 
 size :: Contents -> Int
 size (File x) = x
-size (Directory _ xs) = sum $ map size xs
+size (Directory _ contents) = sum $ map size contents
 
 buildDirectory :: [String] -> Contents
 buildDirectory output = Directory name $ files ++ subdirs

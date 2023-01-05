@@ -1,6 +1,7 @@
 import System.Environment
 import System.IO
 import Data.Char
+import Data.List
 
 main = do
     args <- getArgs
@@ -12,8 +13,9 @@ main = do
 
 type Pair = [String]
 
-part1 :: [Pair] -> [Ordering]
-part1 pairs = map (\ pair -> readPacket (pair !! 0) `compare` readPacket (pair !! 1)) pairs
+part1 :: [Pair] -> Int
+part1 pairs = sum $ map (+1) $ findIndices (==LT) orderings
+    where orderings = map (\ pair -> readPacket (pair !! 0) `compare` readPacket (pair !! 1)) pairs
 
 
 data Packet = Value Int | List [Packet] deriving (Eq)

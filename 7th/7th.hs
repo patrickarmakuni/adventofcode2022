@@ -57,7 +57,8 @@ getBlocks input = splitAt' idxs input
 
 splitAt' :: (Eq a) => [Int] -> [a] -> [[a]]
 splitAt' [] input = [input]
-splitAt' (idx:idxs) input = [(take idx input)] ++ (splitAt' (map (subtract idx) idxs) (drop (idx + 1) input))
+splitAt' (idx:idxs) input = [(take n input)] ++ (splitAt' (map (subtract n) idxs) (drop n input))
+    where n = idx + 1
 
 getSplitIndices :: [String] -> Int -> Int -> [Int] -> [Int]
 getSplitIndices [] _ _ acc = acc

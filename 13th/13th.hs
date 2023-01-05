@@ -1,8 +1,11 @@
+import System.Environment
 import System.IO
 import Data.Char
 
 main = do
-    contents <- readFile "testInput.txt"
+    args <- getArgs
+    let inputFile = args !! 0
+    contents <- readFile inputFile
     let pairs = splitOn "" $ lines contents
     print $ part1 pairs
 

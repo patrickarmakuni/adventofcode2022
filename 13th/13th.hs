@@ -9,6 +9,8 @@ main = do
     contents <- readFile inputFile
     let pairs = splitOn "" $ lines contents
     print $ part1 pairs
+    let packets = map readPacket $ filter (not . null) $ lines contents
+    print $ part2 packets
 
 
 type Pair = [String]
@@ -16,6 +18,12 @@ type Pair = [String]
 part1 :: [Pair] -> Int
 part1 pairs = sum $ map (+1) $ findIndices (==LT) orderings
     where orderings = map (\ pair -> readPacket (pair !! 0) `compare` readPacket (pair !! 1)) pairs
+
+part2 :: [Packet] -> Int
+part2 packets = product $ map (+1) $ findIndices isDivider $ sort $ withDividers
+    where (div1, div2) = (readPacket "[[2]]", readPacket "[[6]]")
+          withDividers = div1 : div2 : packets
+          isDivider p = p == div1 || p == div2
 
 
 data Packet = Value Int | List [Packet] deriving (Eq)

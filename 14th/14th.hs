@@ -1,10 +1,13 @@
 import System.IO
+import System.Environment
 import Data.List
 import Data.Maybe
 
 
 main = do
-    input <- fmap lines $ readFile "input.txt"
+    args <- getArgs
+    let fileName = args !! 0
+    input <- fmap lines $ readFile fileName
     print $ part2 input
 
 
@@ -21,7 +24,7 @@ findSteadyState idx (x:y:xs)
     | otherwise = findSteadyState (idx + 1) (y:xs)
 
 part2 :: [String] -> Int
-part2 input = length $ takeWhile (\ positions -> head positions /= (500, 0)) $ iterate (dropGrain' (500, 0) floor) blocked
+part2 input = length $ takeWhile (\positions -> head positions /= (500, 0)) $ iterate (dropGrain' (500, 0) floor) blocked
     where blocked = getStructures input
           floor = (maximum $ map (snd) blocked) + 2
 

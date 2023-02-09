@@ -20,20 +20,13 @@ type Tunnel = Int
 type Network = [[Tunnel]]
 
 
-distance :: Valve -> Valve -> Network -> [Valve] -> Int
-distance a b network visited = (length $ shortestPath a b network) - 1
+distance :: Valve -> Valve -> Network -> Int
+distance a b network = distanceAcc [a] b network
 
-shortestPath :: Valve -> Valve -> Network -> [Valve]
-shortestPath a b network = reverse $ shortestPathAcc a b network [a]
-
-shortestPathAcc :: Valve -> Valve -> Network -> [Valve] -> [Valve]
-shortestPathAcc a b network visited
-    | any (== b) paths = b : visited
-    | otherwise = case untriedPaths of [] -> []
-                                       ps -> shortest $ map (\path -> shortestPathAcc path b network (path : visited)) ps
-    where untriedPaths = filter (\p -> not $ any (== p) visited) $ paths
-          shortest = foldl1 (\acc x -> if length x < length acc && length x > 0 then x else acc)
-          paths = network !! a
+distanceAcc :: [Valve] -> Valve -> Network -> Int
+distanceAcc acc destination network
+    | destination `elem` acc = 0
+    | otherwise = 1 + distanceAcc (acc ++ (concat $ map (\node -> network !! node) acc)) destination network
 
 
 parseTunnels :: [String] -> String -> [Tunnel]
